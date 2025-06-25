@@ -53,65 +53,34 @@
   </div>
 
   <script>
-    async function registerFingerprint() {
+    function registerFingerprint() {
       const status = document.getElementById('status');
       status.style.color = 'black';
-      status.textContent = 'Registering...';
-
-      try {
-        const publicKey = {
-          challenge: new Uint8Array(32),
-          rp: {
-            name: "AMNS Hazira"
-          },
-          user: {
-            id: new TextEncoder().encode("user-1234"),
-            name: "devanshi@amns.com",
-            displayName: "Devanshi Jethwa"
-          },
-          pubKeyCredParams: [
-            { type: "public-key", alg: -7 },
-            { type: "public-key", alg: -257 }
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required"
-          },
-          timeout: 60000,
-          attestation: "none"
-        };
-
-        await navigator.credentials.create({ publicKey });
-
-        status.style.color = 'green';
-        status.textContent = "✅ Fingerprint registered successfully!";
-      } catch (err) {
-        console.error(err);
-        status.style.color = 'red';
-        status.textContent = "❌ Registration failed: " + err.message;
-      }
+      status.textContent = 'Registration not required on this version.';
     }
 
     async function scanFingerprint() {
       const status = document.getElementById('status');
       status.style.color = 'black';
-      status.textContent = 'Authenticating...';
+      status.textContent = 'Waiting for fingerprint...';
 
       try {
         const publicKey = {
-          challenge: new Uint8Array(32),
+          challenge: new Uint8Array([1, 2, 3, 4]),
           timeout: 60000,
-          userVerification: "required"
+          userVerification: 'required',
+          allowCredentials: []
         };
 
-        await navigator.credentials.get({ publicKey });
+        const assertion = await navigator.credentials.get({ publicKey });
 
+        console.log(assertion);
         status.style.color = 'green';
-        status.textContent = "✅ Fingerprint matched. Door unlocked!";
+        status.textContent = '✅ Fingerprint matched. Door unlocked!';
       } catch (err) {
         console.error(err);
         status.style.color = 'red';
-        status.textContent = "❌ Fingerprint does not match or was cancelled.";
+        status.textContent = '❌ Fingerprint authentication failed.';
       }
     }
   </script>
