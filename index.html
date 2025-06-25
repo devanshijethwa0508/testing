@@ -2,83 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AM/NS Face Unlock System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AMNS Fingerprint Lock</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #f2f2f2;
-      margin: 0;
-    }
-    .container {
-      background: white;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: #f9f9f9;
       text-align: center;
+      padding-top: 60px;
+    }
+    .card {
       max-width: 400px;
-      width: 90%;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     img {
       width: 140px;
       margin-bottom: 20px;
     }
     h2 {
-      margin: 0 0 10px;
+      margin-bottom: 10px;
     }
     button {
+      margin: 10px;
       padding: 12px 20px;
-      margin-top: 20px;
       font-size: 16px;
       border: none;
       border-radius: 10px;
-      background-color: #b30000;
+      background: #b30000;
       color: white;
       cursor: pointer;
     }
     #status {
-      margin-top: 15px;
+      margin-top: 20px;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="card">
     <img src="amns-logo.jpg" alt="AMNS Logo" />
-    <h2>Welcome to AMNS Hazira</h2>
-    <p>Face Unlock Smart Lock</p>
-    <button onclick="faceUnlock()">Use Face Unlock</button>
+    <h2>AMNS Hazira</h2>
+    <p>Fingerprint Door Lock</p>
+    <button onclick="registerFingerprint()">Register Fingerprint</button>
+    <button onclick="scanFingerprint()">Unlock with Fingerprint</button>
     <p id="status"></p>
   </div>
 
   <script>
-    async function faceUnlock() {
-      const status = document.getElementById("status");
-      status.style.color = "black";
-      status.textContent = "Waiting for Face ID / Biometric...";
+    async function registerFingerprint() {
+      const status = document.getElementById('status');
+      status.style.color = 'black';
+      status.textContent = 'Registering...';
 
       try {
         const publicKey = {
-          challenge: new Uint8Array([1,2,3,4,5,6,7,8]),
+          challenge: new Uint8Array(32),
+          rp: { name: "AMNS Hazira" },
+          user: {
+            id: new Uint8Array(16),
+            name: "devanshi@amns.com",
+            displayName: "Devanshi Jethwa"
+          },
+          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required"
+          },
           timeout: 60000,
-          userVerification: 'required',
+          attestation: "none"
+        };
+
+        await navigator.credentials.create({ publicKey });
+
+        status.style.color = 'green';
+        status.textContent = "✅ Fingerprint registered successfully!";
+      } catch (err) {
+        console.error(err);
+        status.style.color = 'red';
+        status.textContent = "❌ Registration failed: " + err.message;
+      }
+    }
+
+    async function scanFingerprint() {
+      const status = document.getElementById('status');
+      status.style.color = 'black';
+      status.textContent = 'Authenticating...';
+
+      try {
+        const publicKey = {
+          challenge: new Uint8Array(32),
+          timeout: 60000,
+          userVerification: "required"
         };
 
         await navigator.credentials.get({ publicKey });
 
-        status.style.color = "green";
-        status.textContent = "✅ Face ID matched. Door unlocked!";
-
-        // Optional: trigger ESP8266 unlock
-        // fetch("http://your-esp-ip/unlock");
+        status.style.color = 'green';
+        status.textContent = "✅ Fingerprint matched. Door unlocked!";
       } catch (err) {
         console.error(err);
-        status.style.color = "red";
-        status.textContent = "❌ Face unlock failed or was cancelled.";
+        status.style.color = 'red';
+        status.textContent = "❌ Fingerprint does not match or was cancelled.";
       }
     }
   </script>
