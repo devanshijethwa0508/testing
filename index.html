@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AMNS Hazira Smart Lock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 80px; }
+    input, button { padding: 12px; margin: 10px; width: 80%; max-width: 300px; border-radius: 8px; border: 1px solid #aaa; }
+    button { background-color: #b30000; color: white; border: none; }
+    #status { color: red; margin-top: 20px; }
+    img { width: 160px; margin-bottom: 30px; }
+  </style>
+</head>
+<body>
+  <img src="AMNS-New-e1703878483400-1.jpg" alt="AMNS Logo" />
+  <h2>Welcome to AMNS Hazira</h2>
+  <p>Secure Door Lock System</p>
+  <input id="password" type="password" placeholder="Enter password" />
+  <br />
+  <button onclick="verifyPassword()">Submit</button>
+  <button onclick="registerFingerprint()">Register Fingerprint</button>
+  <button onclick="authenticate()">Scan Fingerprint to Unlock</button>
+  <div id="status"></div>
+
+  <script>
+    const password = "1234"; // Default password
+
+    function verifyPassword() {
+      const input = document.getElementById('password').value;
+      if (input === password) {
+        document.getElementById('status').innerText = "Password accepted. Unlocked!";
+      } else {
+        document.getElementById('status').innerText = "Wrong password!";
+      }
+    }
+
+    async function registerFingerprint() {
+      try {
+        const cred = await navigator.credentials.create({
+          publicKey: {
+            challenge: new Uint8Array(26),
+            rp: { name: "AMNS Hazira" },
+            user: {
+              id: new Uint8Array(16),
+              name: "user@amns.com",
+              displayName: "AMNS User"
+            },
+            pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+            authenticatorSelection: {
+              authenticatorAttachment: "platform",
+              userVerification: "required"
+            },
+            timeout: 60000,
+            attestation: "none"
+          }
+        });
+        localStorage.setItem("amnsCredential", JSON.stringify(cred));
+        document.getElementById('status').innerText = "Fingerprint registered successfully!";
+      } catch (err) {
+        document.getElementById('status').innerText = "Registration failed: " + err.message;
+      }
+    }
+
+    async function authenticate() {
+      try {
+        const assertion = await navigator.credentials.get({
+          publicKey: {
+            challenge: new Uint8Array(26),
+            timeout: 60000,
+            userVerification: "required"
+          }
+        });
+        document.getElementById('status').innerText = "Fingerprint authentication successful. Door unlocked!";
+      } catch (err) {
+        document.getElementById('status').innerText = "Authentication failed: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
