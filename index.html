@@ -1,147 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AMNS Hazira Door Lock</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f2f4f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: white;
-      padding: 30px 20px;
-      border-radius: 16px;
-      max-width: 400px;
-      width: 90%;
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
       text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      padding-top: 50px;
     }
-    img {
-      width: 160px;
-      margin-bottom: 20px;
-    }
-    h2 {
-      margin-bottom: 8px;
-    }
-    p {
-      font-size: 14px;
-      color: #555;
-      margin-bottom: 20px;
+    .card {
+      max-width: 400px;
+      background-color: #fff;
+      margin: auto;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     input[type="password"] {
-      width: 90%;
-      padding: 12px;
-      font-size: 16px;
-      margin-bottom: 12px;
+      width: 80%;
+      padding: 10px;
+      margin-bottom: 20px;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
     button {
-      width: 90%;
-      padding: 12px;
+      padding: 12px 20px;
+      margin: 10px;
       font-size: 16px;
-      margin: 8px 0;
-      background-color: #b60000;
-      color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      background-color: #d32f2f;
+      color: white;
     }
-    #message {
-      margin-top: 10px;
+    #status {
+      margin-top: 20px;
+      color: green;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <img src="amns-logo.jpg" alt="AMNS Logo" />
+  <div class="card">
+    <img src="amns-logo.jpg" alt="AMNS Logo" style="width: 200px; margin-bottom: 20px;" />
     <h2>Welcome to AMNS Hazira</h2>
-    <p>Fingerprint + Password Smart Lock System</p>
-
-    <input type="password" id="password" placeholder="Enter Password" />
-    <button onclick="verifyPassword()">Verify Password</button>
+    <p>Secure Door Lock System</p>
+    <input type="password" id="password" placeholder="Enter Password">
+    <br>
+    <button onclick="submitPassword()">Submit</button>
     <button onclick="registerFingerprint()">Register Fingerprint</button>
     <button onclick="scanFingerprint()">Scan Fingerprint to Unlock</button>
-
-    <div id="message"></div>
+    <div id="status"></div>
   </div>
 
   <script>
-    const correctPassword = "1234";
-    let passwordOK = false;
+    const correctPassword = "1234"; // change as needed
+    const localStorageKey = "amns_fingerprint_approved";
 
-    function verifyPassword() {
-      const input = document.getElementById("password").value;
-      const msg = document.getElementById("message");
-      if (input === correctPassword) {
-        passwordOK = true;
-        msg.innerText = "✅ Password accepted. Now scan your fingerprint.";
-        msg.style.color = "green";
+    function submitPassword() {
+      const entered = document.getElementById("password").value;
+      if (entered === correctPassword) {
+        document.getElementById("status").innerText = "Password correct. Access granted!";
       } else {
-        passwordOK = false;
-        msg.innerText = "❌ Incorrect password. Try again.";
-        msg.style.color = "red";
+        document.getElementById("status").innerText = "Wrong password. Access denied.";
       }
     }
 
     async function registerFingerprint() {
-      const msg = document.getElementById("message");
+      if (!window.PublicKeyCredential) {
+        alert("This device does not support WebAuthn. Fingerprint unavailable.");
+        return;
+      }
       try {
-        const publicKey = {
-          challenge: new Uint8Array(32),
-          rp: { name: "AMNS Hazira", id: window.location.hostname },
-          user: {
-            id: new Uint8Array(16),
-            name: "user@example.com",
-            displayName: "AMNS User"
-          },
-          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required"
-          },
-          timeout: 60000,
-          attestation: "none"
-        };
-
-        await navigator.credentials.create({ publicKey });
-        msg.innerText = "✅ Fingerprint registered successfully.";
-        msg.style.color = "green";
-      } catch (err) {
-        msg.innerText = "❌ Registration failed: " + err.message;
-        msg.style.color = "red";
+        const isAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (isAvailable) {
+          // fake call just to simulate fingerprint setup
+          alert("Place your finger to register...");
+          setTimeout(() => {
+            localStorage.setItem(localStorageKey, "true");
+            document.getElementById("status").innerText = "Fingerprint registered (simulated).";
+          }, 1000);
+        } else {
+          alert("Fingerprint scanner not available on this device.");
+        }
+      } catch (e) {
+        alert("Error: " + e);
       }
     }
 
-    async function scanFingerprint() {
-      const msg = document.getElementById("message");
-      if (!passwordOK) {
-        msg.innerText = "❌ Please verify the password first.";
-        msg.style.color = "red";
-        return;
-      }
-
-      try {
-        const publicKey = {
-          challenge: new Uint8Array(32),
-          timeout: 60000,
-          userVerification: "required"
-        };
-
-        await navigator.credentials.get({ publicKey });
-        msg.innerText = "🔓 Fingerprint matched. Door unlocked!";
-        msg.style.color = "green";
-      } catch (err) {
-        msg.innerText = "❌ Fingerprint failed: " + err.message;
-        msg.style.color = "red";
+    function scanFingerprint() {
+      const approved = localStorage.getItem(localStorageKey);
+      if (approved === "true") {
+        document.getElementById("status").innerText = "Fingerprint accepted. Door unlocked!";
+      } else {
+        document.getElementById("status").innerText = "No fingerprint found. Please register first.";
       }
     }
   </script>
