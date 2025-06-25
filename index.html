@@ -1,33 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AMNS Hazira Secure Lock</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AMNS Hazira Smart Lock</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f2f5;
-      text-align: center;
-      padding-top: 60px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
     .container {
-      max-width: 400px;
-      margin: auto;
       background: white;
-      padding: 30px;
+      padding: 30px 20px;
       border-radius: 16px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
     img {
-      width: 180px;
+      width: 160px;
       margin-bottom: 20px;
     }
-    input {
+    h2 {
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    input[type="password"] {
       width: 90%;
       padding: 12px;
       font-size: 16px;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
@@ -35,29 +47,27 @@
       width: 90%;
       padding: 12px;
       font-size: 16px;
-      background-color: #b80000;
+      margin: 8px 0;
+      background-color: #b60000;
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      margin-bottom: 10px;
     }
     #message {
-      margin-top: 15px;
+      margin-top: 10px;
       font-weight: bold;
-      color: green;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img src="amns-logo.jpg" alt="AMNS Logo">
+    <img src="amns-logo.jpg" alt="AMNS Logo" />
     <h2>Welcome to AMNS Hazira</h2>
-    <p>Fingerprint + Password Based Smart Lock</p>
+    <p>Fingerprint + Password Smart Lock System</p>
 
-    <input type="password" id="password" placeholder="Enter Password">
+    <input type="password" id="password" placeholder="Enter Password" />
     <button onclick="verifyPassword()">Verify Password</button>
-
     <button onclick="registerFingerprint()">Register Fingerprint</button>
     <button onclick="scanFingerprint()">Scan Fingerprint to Unlock</button>
 
@@ -65,71 +75,73 @@
   </div>
 
   <script>
-    const correctPassword = "1234"; // Your default password
-    let passwordVerified = false;
+    const correctPassword = "1234";
+    let passwordOK = false;
 
     function verifyPassword() {
       const input = document.getElementById("password").value;
+      const msg = document.getElementById("message");
       if (input === correctPassword) {
-        passwordVerified = true;
-        document.getElementById("message").style.color = "green";
-        document.getElementById("message").innerText = "✅ Password verified. Now scan your fingerprint.";
+        passwordOK = true;
+        msg.innerText = "✅ Password accepted. Please scan your fingerprint.";
+        msg.style.color = "green";
       } else {
-        document.getElementById("message").style.color = "red";
-        document.getElementById("message").innerText = "❌ Incorrect password.";
+        passwordOK = false;
+        msg.innerText = "❌ Incorrect password. Try again.";
+        msg.style.color = "red";
       }
     }
 
     async function registerFingerprint() {
+      const msg = document.getElementById("message");
       try {
-        const cred = await navigator.credentials.create({
-          publicKey: {
-            challenge: new Uint8Array(32),
-            rp: {
-              name: "AMNS Hazira",
-              id: "devanshijethwa0508.github.io"
-            },
-            user: {
-              id: new Uint8Array(16),
-              name: "user@amns.com",
-              displayName: "AMNS User"
-            },
-            pubKeyCredParams: [{ type: "public-key", alg: -7 }],
-            authenticatorSelection: {
-              authenticatorAttachment: "platform",
-              userVerification: "required"
-            },
-            timeout: 60000,
-            attestation: "none"
-          }
-        });
-        document.getElementById("message").innerText = "✅ Fingerprint registered successfully.";
+        const publicKey = {
+          challenge: new Uint8Array(32),
+          rp: { name: "AMNS Hazira", id: window.location.hostname },
+          user: {
+            id: new Uint8Array(16),
+            name: "user@example.com",
+            displayName: "AMNS User"
+          },
+          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required"
+          },
+          timeout: 60000,
+          attestation: "none"
+        };
+
+        await navigator.credentials.create({ publicKey });
+        msg.innerText = "✅ Fingerprint registered successfully.";
+        msg.style.color = "green";
       } catch (err) {
-        document.getElementById("message").style.color = "red";
-        document.getElementById("message").innerText = "❌ Registration failed: " + err.message;
+        msg.innerText = "❌ Registration failed: " + err.message;
+        msg.style.color = "red";
       }
     }
 
     async function scanFingerprint() {
-      if (!passwordVerified) {
-        document.getElementById("message").style.color = "red";
-        document.getElementById("message").innerText = "❌ Please verify the password first.";
+      const msg = document.getElementById("message");
+      if (!passwordOK) {
+        msg.innerText = "❌ Please verify the password first.";
+        msg.style.color = "red";
         return;
       }
 
       try {
-        const assertion = await navigator.credentials.get({
-          publicKey: {
-            challenge: new Uint8Array(32),
-            timeout: 60000,
-            userVerification: "required"
-          }
-        });
-        document.getElementById("message").style.color = "green";
-        document.getElementById("message").innerText = "🔓 Fingerprint verified. Door unlocked!";
+        const publicKey = {
+          challenge: new Uint8Array(32),
+          timeout: 60000,
+          userVerification: "required"
+        };
+
+        await navigator.credentials.get({ publicKey });
+        msg.innerText = "🔓 Fingerprint matched. Door unlocked!";
+        msg.style.color = "green";
       } catch (err) {
-        document.getElementById("message").style.color = "red";
-        document.getElementById("message").innerText = "❌ Fingerprint failed: " + err.message;
+        msg.innerText = "❌ Fingerprint failed: " + err.message;
+        msg.style.color = "red";
       }
     }
   </script>
