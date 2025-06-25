@@ -66,10 +66,14 @@
 
       try {
         const publicKey = {
-          challenge: new Uint8Array([1, 2, 3, 4]),
+          challenge: new Uint8Array(32),
           timeout: 60000,
           userVerification: 'required',
-          allowCredentials: []
+          allowCredentials: [],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required"
+          }
         };
 
         const assertion = await navigator.credentials.get({ publicKey });
