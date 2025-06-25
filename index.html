@@ -26,12 +26,18 @@
     h2 {
       margin-bottom: 10px;
     }
-    button {
+    input, button {
       margin: 10px;
       padding: 12px 20px;
       font-size: 16px;
       border: none;
       border-radius: 10px;
+    }
+    input {
+      border: 1px solid #ccc;
+      width: 80%;
+    }
+    button {
       background: #b30000;
       color: white;
       cursor: pointer;
@@ -46,23 +52,36 @@
   <div class="card">
     <img src="amns-logo.jpg" alt="AMNS Logo" />
     <h2>AMNS Hazira</h2>
-    <p>Fingerprint Door Lock</p>
-    <button onclick="registerFingerprint()">Register Fingerprint</button>
-    <button onclick="scanFingerprint()">Unlock with Fingerprint</button>
+    <p>Fingerprint + Password Protected Door Lock</p>
+    <input type="password" id="password" placeholder="Enter Password" />
+    <br />
+    <button onclick="authenticateUser()">Authenticate</button>
     <p id="status"></p>
   </div>
 
   <script>
+    const correctPassword = "amns123"; // Default password you can change
+    const esp8266URL = "http://192.168.1.105/unlock"; // Replace with your ESP8266 IP
+
     function registerFingerprint() {
       const status = document.getElementById('status');
       status.style.color = 'black';
       status.textContent = 'Registration not required on this version.';
     }
 
-    async function scanFingerprint() {
+    async function authenticateUser() {
+      const password = document.getElementById('password').value;
       const status = document.getElementById('status');
+      status.textContent = '';
+
+      if (password !== correctPassword) {
+        status.style.color = 'red';
+        status.textContent = '❌ Incorrect password.';
+        return;
+      }
+
       status.style.color = 'black';
-      status.textContent = 'Waiting for fingerprint...';
+      status.textContent = '✅ Password matched. Please scan your fingerprint...';
 
       try {
         const publicKey = {
@@ -81,6 +100,11 @@
         console.log(assertion);
         status.style.color = 'green';
         status.textContent = '✅ Fingerprint matched. Door unlocked!';
+
+        // Send unlock signal to ESP8266
+        fetch(esp8266URL)
+          .then(() => console.log('Unlock signal sent to ESP8266'))
+          .catch((err) => console.error('Error contacting ESP:', err));
       } catch (err) {
         console.error(err);
         status.style.color = 'red';
