@@ -1,109 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AM/NS Hazira Door Lock</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AMNS Hazira Secure Lock</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f8f8f8;
-      margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      text-align: center;
+      padding-top: 60px;
     }
     .container {
       max-width: 400px;
-      margin: 30px auto;
-      background-color: white;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-      text-align: center;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
     }
-    img.logo {
-      max-width: 200px;
-      margin-bottom: 15px;
+    img {
+      width: 180px;
+      margin-bottom: 20px;
     }
-    h1 {
-      font-size: 1.5em;
-      margin: 10px 0;
-    }
-    p {
-      color: #555;
-      font-size: 14px;
-    }
-    input[type="password"] {
+    input {
       width: 90%;
       padding: 12px;
       font-size: 16px;
-      margin: 12px 0;
+      margin-bottom: 15px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 10px;
     }
     button {
       width: 90%;
       padding: 12px;
       font-size: 16px;
-      margin: 10px 0;
-      background-color: #b60000;
+      background-color: #b80000;
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
+      margin-bottom: 10px;
     }
-    button:disabled {
-      background-color: #aaa;
-    }
-    .message {
+    #message {
       margin-top: 15px;
-      font-size: 14px;
+      font-weight: bold;
       color: green;
-    }
-    .fingerprint {
-      font-size: 50px;
-      margin: 15px 0;
-      color: #aaa;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img class="logo" src="amns-logo.jpg" alt="AMNS Logo"/>
+    <img src="amns-logo.jpg" alt="AMNS Logo">
+    <h2>Welcome to AMNS Hazira</h2>
+    <p>Fingerprint + Password Based Smart Lock</p>
 
-    <h1>Welcome to AMNS Hazira</h1>
-    <p>Secure Door Lock System</p>
+    <input type="password" id="password" placeholder="Enter Password">
+    <button onclick="verifyPassword()">Verify Password</button>
 
-    <input type="password" id="password" placeholder="Enter Password"/>
-    <button onclick="checkPassword()">Submit</button>
+    <button onclick="registerFingerprint()">Register Fingerprint</button>
+    <button onclick="scanFingerprint()">Scan Fingerprint to Unlock</button>
 
-    <div class="fingerprint" onclick="fakeFingerprint()">
-      🔒
-    </div>
-    <button onclick="fakeFingerprint()">Scan Fingerprint</button>
-
-    <div id="message" class="message"></div>
+    <div id="message"></div>
   </div>
 
   <script>
-    const correctPassword = "1234"; // You can change this default password
+    const correctPassword = "1234"; // Your default password
+    let passwordVerified = false;
 
-    function checkPassword() {
-      const pwd = document.getElementById('password').value;
-      const msg = document.getElementById('message');
-      if (pwd === correctPassword) {
-        msg.innerText = "✅ Password correct. Door Unlocked!";
-        msg.style.color = "green";
+    function verifyPassword() {
+      const input = document.getElementById("password").value;
+      if (input === correctPassword) {
+        passwordVerified = true;
+        document.getElementById("message").style.color = "green";
+        document.getElementById("message").innerText = "✅ Password verified. Now scan your fingerprint.";
       } else {
-        msg.innerText = "❌ Incorrect password. Try again.";
-        msg.style.color = "red";
+        document.getElementById("message").style.color = "red";
+        document.getElementById("message").innerText = "❌ Incorrect password.";
       }
     }
 
-    function fakeFingerprint() {
-      const msg = document.getElementById('message');
-      msg.innerText = "🔓 Fingerprint recognized. Door Unlocked!";
-      msg.style.color = "green";
+    async function registerFingerprint() {
+      try {
+        const cred = await navigator.credentials.create({
+          publicKey: {
+            challenge: new Uint8Array(32),
+            rp: {
+              name: "AMNS Hazira",
+              id: "devanshijethwa0508.github.io"
+            },
+            user: {
+              id: new Uint8Array(16),
+              name: "user@amns.com",
+              displayName: "AMNS User"
+            },
+            pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+            authenticatorSelection: {
+              authenticatorAttachment: "platform",
+              userVerification: "required"
+            },
+            timeout: 60000,
+            attestation: "none"
+          }
+        });
+        document.getElementById("message").innerText = "✅ Fingerprint registered successfully.";
+      } catch (err) {
+        document.getElementById("message").style.color = "red";
+        document.getElementById("message").innerText = "❌ Registration failed: " + err.message;
+      }
+    }
+
+    async function scanFingerprint() {
+      if (!passwordVerified) {
+        document.getElementById("message").style.color = "red";
+        document.getElementById("message").innerText = "❌ Please verify the password first.";
+        return;
+      }
+
+      try {
+        const assertion = await navigator.credentials.get({
+          publicKey: {
+            challenge: new Uint8Array(32),
+            timeout: 60000,
+            userVerification: "required"
+          }
+        });
+        document.getElementById("message").style.color = "green";
+        document.getElementById("message").innerText = "🔓 Fingerprint verified. Door unlocked!";
+      } catch (err) {
+        document.getElementById("message").style.color = "red";
+        document.getElementById("message").innerText = "❌ Fingerprint failed: " + err.message;
+      }
     }
   </script>
 </body>
