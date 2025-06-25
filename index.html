@@ -1,102 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AMNS Hazira Door Lock</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AM/NS Face Unlock System</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #f2f2f2;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       text-align: center;
-      padding-top: 50px;
-    }
-    .card {
       max-width: 400px;
-      background-color: #fff;
-      margin: auto;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      width: 90%;
     }
-    input[type="password"] {
-      width: 80%;
-      padding: 10px;
+    img {
+      width: 140px;
       margin-bottom: 20px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    }
+    h2 {
+      margin: 0 0 10px;
     }
     button {
       padding: 12px 20px;
-      margin: 10px;
+      margin-top: 20px;
       font-size: 16px;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background-color: #d32f2f;
+      border-radius: 10px;
+      background-color: #b30000;
       color: white;
+      cursor: pointer;
     }
     #status {
-      margin-top: 20px;
-      color: green;
+      margin-top: 15px;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <img src="amns-logo.jpg" alt="AMNS Logo" style="width: 200px; margin-bottom: 20px;" />
+  <div class="container">
+    <img src="amns-logo.jpg" alt="AMNS Logo" />
     <h2>Welcome to AMNS Hazira</h2>
-    <p>Secure Door Lock System</p>
-    <input type="password" id="password" placeholder="Enter Password">
-    <br>
-    <button onclick="submitPassword()">Submit</button>
-    <button onclick="registerFingerprint()">Register Fingerprint</button>
-    <button onclick="scanFingerprint()">Scan Fingerprint to Unlock</button>
-    <div id="status"></div>
+    <p>Face Unlock Smart Lock</p>
+    <button onclick="faceUnlock()">Use Face Unlock</button>
+    <p id="status"></p>
   </div>
 
   <script>
-    const correctPassword = "1234"; // change as needed
-    const localStorageKey = "amns_fingerprint_approved";
+    async function faceUnlock() {
+      const status = document.getElementById("status");
+      status.style.color = "black";
+      status.textContent = "Waiting for Face ID / Biometric...";
 
-    function submitPassword() {
-      const entered = document.getElementById("password").value;
-      if (entered === correctPassword) {
-        document.getElementById("status").innerText = "Password correct. Access granted!";
-      } else {
-        document.getElementById("status").innerText = "Wrong password. Access denied.";
-      }
-    }
-
-    async function registerFingerprint() {
-      if (!window.PublicKeyCredential) {
-        alert("This device does not support WebAuthn. Fingerprint unavailable.");
-        return;
-      }
       try {
-        const isAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        if (isAvailable) {
-          // fake call just to simulate fingerprint setup
-          alert("Place your finger to register...");
-          setTimeout(() => {
-            localStorage.setItem(localStorageKey, "true");
-            document.getElementById("status").innerText = "Fingerprint registered (simulated).";
-          }, 1000);
-        } else {
-          alert("Fingerprint scanner not available on this device.");
-        }
-      } catch (e) {
-        alert("Error: " + e);
-      }
-    }
+        const publicKey = {
+          challenge: new Uint8Array([1,2,3,4,5,6,7,8]),
+          timeout: 60000,
+          userVerification: 'required',
+        };
 
-    function scanFingerprint() {
-      const approved = localStorage.getItem(localStorageKey);
-      if (approved === "true") {
-        document.getElementById("status").innerText = "Fingerprint accepted. Door unlocked!";
-      } else {
-        document.getElementById("status").innerText = "No fingerprint found. Please register first.";
+        await navigator.credentials.get({ publicKey });
+
+        status.style.color = "green";
+        status.textContent = "✅ Face ID matched. Door unlocked!";
+
+        // Here you can trigger a fetch to ESP8266
+        // fetch("http://your-esp-ip/unlock");
+      } catch (err) {
+        console.error(err);
+        status.style.color = "red";
+        status.textContent = "❌ Face unlock failed or was cancelled.";
       }
     }
   </script>
