@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AMNS Fingerprint Lock</title>
   <style>
     body {
@@ -61,13 +61,18 @@
       try {
         const publicKey = {
           challenge: new Uint8Array(32),
-          rp: { name: "AMNS Hazira" },
+          rp: {
+            name: "AMNS Hazira"
+          },
           user: {
-            id: new Uint8Array(16),
+            id: new TextEncoder().encode("user-1234"),
             name: "devanshi@amns.com",
             displayName: "Devanshi Jethwa"
           },
-          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+          pubKeyCredParams: [
+            { type: "public-key", alg: -7 },
+            { type: "public-key", alg: -257 }
+          ],
           authenticatorSelection: {
             authenticatorAttachment: "platform",
             userVerification: "required"
