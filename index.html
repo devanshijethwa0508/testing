@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AMNS Hazira Smart Lock</title>
+  <title>AMNS Hazira Door Lock</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -83,7 +83,7 @@
       const msg = document.getElementById("message");
       if (input === correctPassword) {
         passwordOK = true;
-        msg.innerText = "✅ Password accepted. Please scan your fingerprint.";
+        msg.innerText = "✅ Password accepted. Now scan your fingerprint.";
         msg.style.color = "green";
       } else {
         passwordOK = false;
